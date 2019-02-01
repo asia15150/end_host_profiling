@@ -8,7 +8,7 @@ Created on Wed Jan 30 16:05:42 2019
 
 import networkx as nx
 import csv
-
+import matplotlib.pyplot as plt
 
 
 #examples - exo 3.
@@ -31,7 +31,6 @@ anomalies = []
 
 
 
-
 #generating graphlets once the arrays above are filed with values
 #def generateGraphlets(nbGraphlets, formats):
 #    for i in range(0,nbGraphlets):#nb of graphlets
@@ -50,14 +49,14 @@ anomalies = []
 #
 #    
 ##saving the values in arrays : srcIp, protocol, dstIP, sPort, dPort, anomalies
-#def saveRowInArrays(row):
-#    #print(row)
-#    srcIp.append(row[0])
-#    protocol.append(row[1])
-#    dstIP.append(row[2])
-#    sPort.append(row[3])
-#    dPort.append(row[4])
-#    anomalies.append(row[5])    
+def saveRowInArrays(row):
+    #print(row)
+    srcIp.append(row[0])
+    protocol.append(row[1])
+    dstIP.append(row[2])
+    sPort.append(row[3])
+    dPort.append(row[4])
+    anomalies.append(row[5])    
 
 def addFutherNodes(row):
     print("addFutherNodes : ")
@@ -119,18 +118,36 @@ def constructGraph(row):
         graphlets[srcIp] = graphlet
         #print(graphlets[srcIp].edges)
     
+def makeNodes(tab):
+    array = []
+    l = len(tab)
+    #print(l)
+    for i in range(0, l-1):
+        array.append((tab[i],tab[i+1]))
 
-
+    array.append((tab[0],tab[l-1]))
+    #print(array)
+    return array
+        
 def readAnnotatedTrace():
+    tab = []
     with open('annotated-trace.csv') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
-            if line_count < 220:
-                constructGraph(row)
-                line_count += 1
+            saveRowInArrays(row)
+            if line_count < 10:
+                tab = tab + row;
+                #print(tab)
+                line_count+=1
             else:
-                line_count += 1
+                break
+    return tab
+            #if line_count < 220:
+             #   constructGraph(row)
+              #@  line_count += 1
+            #else:
+             #   line_count += 1
     #print("number of flows : " + str(line_count))
     #formats = [srcIp, protocol,dstIP, sPort, dPort]
     #return (line_count,formats)
@@ -138,12 +155,34 @@ def readAnnotatedTrace():
 
     #print(formats)
 
+    
 #the array containning the corresponding arrays: srcIp, protocol, dstIP, sPort, dPort, anomalies
-readAnnotatedTrace()
+
 #print(graphlets)
 
+tab = readAnnotatedTrace()
+finalTab = makeNodes(tab)
 
 graphlet1 = nx.Graph()
-graphlet1.add_nodes_from([67,233,4,5,12])
+graphlet1.add_nodes_from(srcIp, color="red")
+graphlet1.add_nodes_from(protocol, color="blue")
+graphlet1.add_nodes_from(dstIP, color='yellow')
+graphlet1.add_nodes_from(sPort, color='black')
+graphlet1.add_nodes_from(dPort, color='green')
+graphlet1.add_edges_from(finalTab)
+
+print(srcIp)
+print(protocol)
+print(dstIP)
+print(sPort)
+print(dPort)
+print(anomalies)
+
+
+
+#nx.draw_networkx_edges(graphlet1,pos,width=1.0,alpha=0.5)
+nx.draw(graphlet1)
+#nx.draw_networkx_nodes(graphlet1, pos)
+plt.show()
 #print(graphlet1.nodes)
 
