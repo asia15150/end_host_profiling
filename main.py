@@ -125,7 +125,7 @@ def makeNodes(tab):
     for i in range(0, l-1):
         array.append((tab[i],tab[i+1]))
 
-    array.append((tab[0],tab[l-2]))
+    array.append((tab[0],tab[l-1]))
     print(array)
     return array
         
@@ -137,12 +137,13 @@ def readAnnotatedTrace():
         for row in csv_reader:
             saveRowInArrays(row)
             row.pop()
-            if line_count < 10:
-                tab = tab + row;
+            tab = tab + row;
+            #if line_count < 10:
+               # tab = tab + row;
                 #print(tab)
-                line_count+=1
-            else:
-                break
+                #line_count+=1
+            #else:
+                #break
     return tab
             #if line_count < 220:
              #   constructGraph(row)
