@@ -62,18 +62,32 @@ anomalies = []
 def addFutherNodes(row):
     print("addFutherNodes : ")
     srcIp = row[0]
-    nodes = list (graphlets[srcIp].nodes)
+    graphlet = graphlets[srcIp]
+    nodes = list (graphlet.nodes)
     print(nodes)
     print("nodes[1] " + nodes[1])
     print("row[1] " + row[1])
-    if nodes[1] == row[1]:
-        print(" 1 : ")
-    if nodes[2] == row[2]:
-        print(" 2 : ")
-    if nodes[3] == row[3]:
-        print(" 2 : ")
-    if nodes[4] == row[4]:
-        print(" 2 : ")
+    for i in range(1,5):#nb of network flows
+            node = row[i]
+            graphlet.add_node(node)
+            #print(graphlet.nodes)
+            previousNode = row[i-1]
+                #print(previousNode)
+                #print(node)
+            graphlet.add_edge(previousNode,node)
+    #print(graphlet.nodes)
+    print("?")
+    print(graphlet.edges)
+
+
+#    if nodes[1] == row[1]:
+#        print(" 1 : ")
+#    if nodes[2] == row[2]:
+#        print(" 2 : ")
+#    if nodes[3] == row[3]:
+#        print(" 2 : ")
+#    if nodes[4] == row[4]:
+#        print(" 2 : ")
 
 
         
@@ -93,10 +107,12 @@ def constructGraph(row):
             graphlet.add_node(node)
             if i != 0:
                 previousNode = row[i-1]
-                print(previousNode)
-                print(node)
+                #print(previousNode)
+                #print(node)
                 graphlet.add_edge(previousNode,node) 
-                print(graphlet.edges)
+                #print(graphlet.edges)
+                #print(graphlet.nodes)
+
 #        if i == 0 or i == 1 or i == 2:
 #            nx.draw(graphlet)
         #print(graphlet.nodes)
@@ -110,7 +126,7 @@ def readAnnotatedTrace():
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
-            if line_count < 1:#220:
+            if line_count < 220:
                 constructGraph(row)
                 line_count += 1
             else:
@@ -128,9 +144,6 @@ readAnnotatedTrace()
 
 
 graphlet1 = nx.Graph()
-graphlet1.add_nodes_from([1,2,3,4,5])
-graphlet1.add_edges_from([(1,2),(2,3),(3,4),(4,5)])
-graphlet1.add_node(2)
-print(graphlet1.edges)
-print(graphlet1.nodes)
+graphlet1.add_nodes_from([67,233,4,5,12])
+#print(graphlet1.nodes)
 
