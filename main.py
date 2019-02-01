@@ -125,8 +125,8 @@ def makeNodes(tab):
     for i in range(0, l-1):
         array.append((tab[i],tab[i+1]))
 
-    array.append((tab[0],tab[l-1]))
-    #print(array)
+    array.append((tab[0],tab[l-2]))
+    print(array)
     return array
         
 def readAnnotatedTrace():
@@ -136,6 +136,7 @@ def readAnnotatedTrace():
         line_count = 0
         for row in csv_reader:
             saveRowInArrays(row)
+            row.pop()
             if line_count < 10:
                 tab = tab + row;
                 #print(tab)
@@ -154,7 +155,14 @@ def readAnnotatedTrace():
     #return (10,formats)
 
     #print(formats)
-
+def draw(tab):
+    for t in tab:
+        graphlet1 = nx.Graph()
+        graphlet1.add_nodes_from(tab)
+        pos = nx.spring_layout(graphlet1)
+        nx.draw_networkx_nodes(graphlet1, pos,nodelist=t,node_color='r',node_size=10,alpha=0.8)
+    plt.axis('off')
+    plt.show()
     
 #the array containning the corresponding arrays: srcIp, protocol, dstIP, sPort, dPort, anomalies
 
@@ -163,26 +171,55 @@ def readAnnotatedTrace():
 tab = readAnnotatedTrace()
 finalTab = makeNodes(tab)
 
+
+
+
+#graphlet1.add_nodes_from(srcIp, color="red")
+#graphlet1.add_nodes_from(protocol, color="blue")
+#graphlet1.add_nodes_from(dstIP, color='yellow')
+#graphlet1.add_nodes_from(sPort, color='black')
+#graphlet1.add_nodes_from(dPort, color='green')
+
+
+
+
+#graphlet1.add_edges_from(finalTab)
+
+
+
+#print(srcIp)
+#print(protocol)
+#print(dstIP)
+#print(sPort)
+#print(dPort)
+#print(anomalies)
+conc = [srcIp,protocol,dstIP, sPort, dPort]
+#draw(conc)
 graphlet1 = nx.Graph()
 graphlet1.add_nodes_from(srcIp, color="red")
 graphlet1.add_nodes_from(protocol, color="blue")
 graphlet1.add_nodes_from(dstIP, color='yellow')
 graphlet1.add_nodes_from(sPort, color='black')
 graphlet1.add_nodes_from(dPort, color='green')
+pos = nx.spring_layout(graphlet1)
+
 graphlet1.add_edges_from(finalTab)
+print(graphlet1.nodes(data=True))
+red_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='red']
+blue_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='blue']
+yellow_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='yellow']
+black_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='black']
+green_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='green']
 
-print(srcIp)
-print(protocol)
-print(dstIP)
-print(sPort)
-print(dPort)
-print(anomalies)
-
-
-
-#nx.draw_networkx_edges(graphlet1,pos,width=1.0,alpha=0.5)
-nx.draw(graphlet1)
+nx.draw_networkx_nodes(graphlet1,pos,nodelist=blue_nodes,node_color='b')
+nx.draw_networkx_nodes(graphlet1,pos,nodelist=red_nodes,node_color='r')
+nx.draw_networkx_nodes(graphlet1,pos,nodelist=yellow_nodes,node_color='green')
+nx.draw_networkx_nodes(graphlet1,pos,nodelist=black_nodes,node_color='deepskyblue')
+nx.draw_networkx_nodes(graphlet1,pos,nodelist=green_nodes,node_color='yellow')
+nx.draw_networkx_edges(graphlet1,pos,width=1.0,alpha=0.5)
+#nx.draw(graphlet1)
 #nx.draw_networkx_nodes(graphlet1, pos)
+plt.axis('off')
 plt.show()
 #print(graphlet1.nodes)
 
