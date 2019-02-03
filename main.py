@@ -125,7 +125,7 @@ def makeNodes(tab):
     for i in range(0, l-1):
         array.append((tab[i],tab[i+1]))
 
-    array.append((tab[0],tab[l-2]))
+    array.append((tab[0],tab[l-1]))
     print(array)
     return array
         
@@ -137,12 +137,13 @@ def readAnnotatedTrace():
         for row in csv_reader:
             saveRowInArrays(row)
             row.pop()
-            if line_count < 10:
-                tab = tab + row;
+            tab = tab + row;
+            #if line_count < 10:
+               # tab = tab + row;
                 #print(tab)
-                line_count+=1
-            else:
-                break
+                #line_count+=1
+            #else:
+                #break
     return tab
             #if line_count < 220:
              #   constructGraph(row)
@@ -160,7 +161,7 @@ def draw(tab):
         graphlet1 = nx.Graph()
         graphlet1.add_nodes_from(tab)
         pos = nx.spring_layout(graphlet1)
-        nx.draw_networkx_nodes(graphlet1, pos,nodelist=t,node_color='r',node_size=10,alpha=0.8)
+        nx.draw_networkx_nodes(graphlet1, pos,nodelist=t,node_color='r',node_size=100)
     plt.axis('off')
     plt.show()
     
@@ -211,12 +212,13 @@ yellow_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='yellow']
 black_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='black']
 green_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='green']
 
-nx.draw_networkx_nodes(graphlet1,pos,nodelist=blue_nodes,node_color='b')
-nx.draw_networkx_nodes(graphlet1,pos,nodelist=red_nodes,node_color='r')
-nx.draw_networkx_nodes(graphlet1,pos,nodelist=yellow_nodes,node_color='green')
-nx.draw_networkx_nodes(graphlet1,pos,nodelist=black_nodes,node_color='deepskyblue')
-nx.draw_networkx_nodes(graphlet1,pos,nodelist=green_nodes,node_color='yellow')
+nx.draw_networkx_nodes(graphlet1,pos,nodelist=blue_nodes,node_color='b', node_size=500)
+nx.draw_networkx_nodes(graphlet1,pos,nodelist=red_nodes,node_color='r', node_size=500)
+nx.draw_networkx_nodes(graphlet1,pos,nodelist=yellow_nodes,node_color='green', node_size=500)
+nx.draw_networkx_nodes(graphlet1,pos,nodelist=black_nodes,node_color='deepskyblue', node_size=500)
+nx.draw_networkx_nodes(graphlet1,pos,nodelist=green_nodes,node_color='yellow', node_size=500)
 nx.draw_networkx_edges(graphlet1,pos,width=1.0,alpha=0.5)
+nx.draw_networkx_labels(graphlet1,pos,font_color='black')
 #nx.draw(graphlet1)
 #nx.draw_networkx_nodes(graphlet1, pos)
 plt.axis('off')
