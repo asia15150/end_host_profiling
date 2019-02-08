@@ -28,7 +28,7 @@ import numpy as np
 #dPort = [2 for i in range(0, 4)] 
 #formats = [srcIp, protocol,dstIP, sPort, dPort]
 
-graphlets = {} #dictionary of form ipadress:graphlet
+graphletsList = {} #dictionary of form ipadress:graphlet
 
 
 srcIp = []
@@ -69,10 +69,13 @@ def saveRowInArrays(row):
 
  #we add new nodes to existing graph
 def addFutherNodes(row):
+    print(row)
     srcIp = row[0]
-    graphlet = graphlets[srcIp]
+    graphlet = graphletsList[srcIp]
     #nodes = list (graphlet.nodes)
-    addEdgesAndNodes(row, graphlet)
+    #for g in graphletsList:
+    print(graphletsList)
+    #addEdgesAndNodes(row, graphlet)
     return graphlet
 
 def addEdgesAndNodes(row, graphlet):
@@ -85,7 +88,7 @@ def addEdgesAndNodes(row, graphlet):
         node = row[i]
         previousNode = row[i-1]
         graphlet.add_edge(previousNode,node) 
-        
+    print(graphlet)
     return graphlet
     #print(graphlet.edges)
      #print(graphlet.nodes)
@@ -95,15 +98,15 @@ def addEdgesAndNodes(row, graphlet):
 def constructGraph(row):
     srcIp = row[0]
     #if the graphlet with ip in question exist already ->
-    if srcIp in graphlets:
-        #print("===== " + srcIp)
+    if srcIp in graphletsList:
+        print("===== " + srcIp)
         graphlet = addFutherNodes(row)
         return graphlet
     else:
         graphlet = nx.DiGraph()
         graphlet.add_node(row[0], name='srcIp')
         graphlet = addEdgesAndNodes(row, graphlet)
-        graphlets[srcIp] = graphlet
+        graphletsList[srcIp] = list(graphlet)
         return graphlet
 
  
@@ -116,15 +119,16 @@ def readAnnotatedTrace():
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
-            if line_count < 699:
-                if line_count == 1:
-                    graphlet = constructGraph(row)
-                    A0 = calculeMatrixA0(graphlet)
-                    A = countPathsOfLength1(graphlet)
-                    A2 = walks2(A)
-                    A3 = walks3(A2, A)
-                    A4 = walks4(A3, A)
-                    sommeWalks(A0,A,A2,A3,A4)
+            if line_count < 29:
+                #if line_count == 23 or line_count == 24:
+                #graphlet = constructGraph(row)
+                    #print(graphlet)
+#                    A0 = calculeMatrixA0(graphlet)
+#                    A = countPathsOfLength1(graphlet)
+#                    A2 = walks2(A)
+#                    A3 = walks3(A2, A)
+#                    A4 = walks4(A3, A)
+#                    sommeWalks(A0,A,A2,A3,A4)
                 constructGraph(row)
                 line_count += 1
             else:
@@ -157,6 +161,33 @@ def calculeMatrixA0(graph):
     return np.array(matrix)
         
 
+def orderingNodes(nodesList):
+    #print(nodesList)
+    nodesFinales = []
+    for node,label in nodesList:
+        if (label == 'srcIp'):
+            nodesFinales.append(node)
+            break
+    for node,label in nodesList:
+        #print(node + "   " + label)
+        if (label == 'protocol'):
+            nodesFinales.append(node)
+            break
+    for node,label in nodesList:
+        if (label == 'dstIP'):
+            nodesFinales.append(node)
+            break
+    for node,label in nodesList:
+        if (label == 'sPort'):
+            nodesFinales.append(node)
+            break
+    for node,label in nodesList:
+        if (label == 'dPort'):
+            nodesFinales.append(node)
+            break
+    print(nodesFinales)
+    return nodesFinales
+
 
 
     
@@ -166,15 +197,21 @@ def countPathsOfLength1(graph):
     edges = graph.edges
     nodes = graph.nodes
     nbNodes = len(nodes)
+    nodesList = list(graph.nodes(data='name'))
+    nodesFinales = orderingNodes(nodesList)
     print(edges)
-    for rowI in nodes:
+    #to fill the matrix row by row
+    for node in nodesFinales:
         row = []
-        for colI in nodes:
+        for colI in nodesFinales:
             try:
-                currentEdge =list(edges(rowI))
+                #edge in which the current node is linked with another one
+                currentEdge =list(edges(node))
+                # the node with which the current node is linked
                 neighboureEdge = currentEdge[0][1]
                 #print("currentEdge " + str(currentEdge))
                 #print("neighboureEdge " + str(neighboureEdge))
+                # if the colon's label in matrix in which we are right now equals neighbour node of "node"
                 if neighboureEdge == colI:
                     row.append(1)
                 else :
