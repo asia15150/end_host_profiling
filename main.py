@@ -12,6 +12,20 @@ import matplotlib.pyplot as plt
 from random import choice
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #examples - exo 3.
 #srcIp = ['12.124.65.34' for i in range(0, 4)]
 #protocol = [17 for i in range(0, 4)]
@@ -56,16 +70,7 @@ tab_nodes = []
 
 def makeNodes_v2(tab):
     array = []
-    #print(tab)
     G = nx.path_graph(tab)
-    #H = G.subgraph(tab)
-    #print(G.edges)
-    #l = len(tab)
-    #print(l)
-    #for i in range(0, l-1):
-     #   array.append((tab[i],tab[i+1]))
-    #array.append((tab[0],tab[l-1]))
-    #print(list(H.edges))
     return list(G.edges)
 
 
@@ -167,7 +172,7 @@ def readAnnotatedTrace():
             saveRowInArrays(row)
             #row.pop()
             #tab = tab + row;
-            if line_count < 100:
+            if line_count < 3:
                tab = tab + row;
                #print(tab)
                line_count+=1
@@ -260,7 +265,7 @@ def drawG2():
     tab = readAnnotatedTrace()
     finalTab = makeNodes(tab)
 
-    graphlet1 = nx.Graph()
+    graphlet1 = nx.DiGraph()
     
     graphlet1.add_nodes_from(srcIp, label = 'srcIp')
     graphlet1.add_nodes_from(protocol, label = 'protocol')
@@ -285,7 +290,7 @@ def drawG2():
             color_map.append('yellow')
         else:
             color_map.append('pink')
-        
+    print(
     random_walk(graphlet1)
     nx.draw(graphlet1, with_labels=True,node_color = color_map, node_size=500)
     plt.axis('off')
