@@ -108,7 +108,7 @@ class Graphlet:
                 color_map.append('yellow')
             else:
                 color_map.append('pink')
-        nx.draw(self.graph, with_labels=True,node_color = color_map, node_size=500)
+        nx.draw_shell(self.graph, with_labels=True,node_color = color_map, node_size=500)
 
         
 #read file and build graphlets
@@ -156,13 +156,18 @@ def compute_walk(length, matrix):
 
 graphlets_ = readAnnotatedTrace()
 for index, g in enumerate(graphlets_.values()):
+   
+    i = 200+index+1
+    print(i)
+    #plt.subplot(i)
     g.draw()
     g.make_first_matrix()
     
     B = compute_walk(4, g.get_first_matrix())
     df = pd.DataFrame(B, columns=g.graph.nodes(), index=g.graph.nodes())
-    #print(B)
     print(df)
+    #print(B)
+    #print(df)
     #plt.figure(index)
 
 plt.show()
