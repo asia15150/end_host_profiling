@@ -34,22 +34,6 @@ class Graphlet:
         G = nx.path_graph(row) 
         return set(list(G.edges)) #return set just to be unioned later on
 
-    #def build_matrix_0(self):
-
-        #set permet de ne pas avoir de doublons
-        #len_protocol = len(set(self.protocol))
-        #len_dstIp = len(set(self.protocol))
-        #len_sPort = len(set(self.sPort))
-        #len_dPort = len(set(self.dPort))
-        #len_anomalies = len(set(self.anomalies))
-
-        
-        #self.A = [[0, len_protocol, 0, 0, 0],
-                 # [0, 0, len_dstIp, 0, 0],
-                #  [0, 0, 0, len_sPort, 0],
-                #  [0, 0, 0, 0, len_dPort],
-                 # [0, 0, 0, 0, 0]]
-
     #parse row
     def saveRowInArrays(self, row):
     #print(row)
@@ -97,9 +81,6 @@ class Graphlet:
 
     # draw version 1
     def draw(self):
-    #tab = readAnnotatedTrace()
-    #finalTab = makeNodes(tab)
-        
         #nodes
         self.graph.add_node(self.ip_adress, label = 'srcIp')
         self.graph.add_nodes_from(list(self.protocol), label = 'protocol')
@@ -128,15 +109,6 @@ class Graphlet:
             else:
                 color_map.append('pink')
         nx.draw(self.graph, with_labels=True,node_color = color_map, node_size=500)
-
-
-
-
-
-
-
-
-
 
         
 #read file and build graphlets
@@ -182,39 +154,6 @@ def compute_walk(length, matrix):
 
 
 
-
-##def drawG():
-##    tab = readAnnotatedTrace()
-##    finalTab = makeNodes(tab)
-##    graphlet1 = nx.Graph()
-##    graphlet1.add_nodes_from(srcIp, color="red")
-##    graphlet1.add_nodes_from(protocol, color="blue")
-##    graphlet1.add_nodes_from(dstIP, color='yellow')
-##    graphlet1.add_nodes_from(sPort, color='black')
-##    graphlet1.add_nodes_from(dPort, color='green')
-##    graphlet1.add_nodes_from(anomalies, color='pink')
-##    pos = nx.spring_layout(graphlet1)
-##    graphlet1.add_edges_from(tab_nodes)
-##
-##    red_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='red']
-##    blue_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='blue']
-##    yellow_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='yellow']
-##    black_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='black']
-##    green_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='green']
-##    pink_nodes=[n for n,d in graphlet1.nodes(data=True) if d['color']=='pink']
-##
-##    nx.draw_networkx_nodes(graphlet1,pos,nodelist=blue_nodes,node_color='b', node_size=500)
-##    nx.draw_networkx_nodes(graphlet1,pos,nodelist=red_nodes,node_color='r', node_size=500)
-##    nx.draw_networkx_nodes(graphlet1,pos,nodelist=yellow_nodes,node_color='green', node_size=500)
-##    nx.draw_networkx_nodes(graphlet1,pos,nodelist=black_nodes,node_color='deepskyblue', node_size=500)
-##    nx.draw_networkx_nodes(graphlet1,pos,nodelist=green_nodes,node_color='yellow', node_size=500)
-##    nx.draw_networkx_nodes(graphlet1,pos,nodelist=pink_nodes,node_color='pink', node_size=500)
-##    nx.draw_networkx_edges(graphlet1,pos,width=1.0,alpha=0.5)
-##    nx.draw_networkx_labels(graphlet1,pos,font_color='black')
-##
-##    plt.axis('off')
-##    plt.show()
-
 graphlets_ = readAnnotatedTrace()
 for index, g in enumerate(graphlets_.values()):
     g.draw()
@@ -225,9 +164,6 @@ for index, g in enumerate(graphlets_.values()):
     #print(B)
     print(df)
     #plt.figure(index)
-
-#matrix = [[0,1,1],[1,0,1],[1,1,0]]
-#print(np.matmul(matrix, matrix))
 
 plt.show()
 
