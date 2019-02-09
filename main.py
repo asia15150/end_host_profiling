@@ -5,17 +5,21 @@ Created on Wed Jan 30 16:05:42 2019
 
 @author: asia
 """
-import sys
+#import sys
 import pandas as pd
 import networkx as nx
 import csv
 import matplotlib.pyplot as plt
-from random import choice
+#from random import choice
 import numpy as np
-import pprint
+#import pprint
 
-np.set_printoptions(threshold=sys.maxsize)
-np.set_printoptions(threshold=np.nan)
+#font = {'size'   : 30}
+
+#plt.rc('font', **font)
+
+#np.set_printoptions(threshold=sys.maxsize)
+#np.set_printoptions(threshold=np.nan)
 class Graphlet:
     def __init__(self, ip_adress):
         self.ip_adress = ip_adress
@@ -113,31 +117,30 @@ class Graphlet:
         
 #read file and build graphlets
 def readAnnotatedTrace():
-    ip = 'srcIp:882'
-    G = Graphlet(ip)
-    graphlets_ = {ip:G}
+    #ip = 'srcIp:882'
+    #G = Graphlet(ip)
+    graphlets_ = {}
     with open('annotated-trace.csv') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
-        for row in csv_reader:
-            
+        for row in csv_reader:       
             ip = 'srcIp:'+row[0]
             G = graphlets_.get(ip)
-            if 'srcIp:882' == ip:
-                G.saveRowInArrays(row)
+           # if 'srcIp:882' == ip:
+            #    G.saveRowInArrays(row)
             #print(ip)
             #print(G)
-           # if G == None:
-            #   G = Graphlet(ip)
-             #  G.saveRowInArrays(row)
-              # graphlets_.update({ip:G})
-            #else:
-             #  G.saveRowInArrays(row)
-               
-            if line_count < 100:#####CHANGE TO 10000 TO SEE DIFFERENC####FOR NOW I ONLY WORK WITH srcIp=882
-               line_count+=1
+            if G == None:
+               G = Graphlet(ip)
+               G.saveRowInArrays(row)
+               graphlets_.update({ip:G})
             else:
-               break
+               G.saveRowInArrays(row)
+               
+            #if line_count < 1000:#####CHANGE TO 10000 TO SEE DIFFERENC####FOR NOW I ONLY WORK WITH srcIp=882
+               #line_count+=1
+            #else:
+               #break
     
     return graphlets_
 
@@ -145,11 +148,11 @@ def readAnnotatedTrace():
 def compute_walk(length, matrix):
     A = matrix
     for i in range(length-1):
-        print("####walk: "+str(i+1))
-        print(A)
+        #print("####walk: "+str(i+1))
+        #print(A)
         A = np.matmul(A, matrix)
-    print("####walk: 4")
-    print(A)
+    #print("####walk: 4")
+    #print(A)
     return A
 
 
@@ -158,19 +161,37 @@ graphlets_ = readAnnotatedTrace()
 for index, g in enumerate(graphlets_.values()):
    
     i = 200+index+1
-    print(i)
+    #print(i)
     #plt.subplot(i)
-    g.draw()
-    g.make_first_matrix()
     
+    fig = plt.figure(figsize=(20,20))
+    plt.subplot(2, 1, 1)
+    g.draw()
+
+    plt.subplot(2, 1, 2)
+    g.make_first_matrix()
     B = compute_walk(4, g.get_first_matrix())
     df = pd.DataFrame(B, columns=g.graph.nodes(), index=g.graph.nodes())
-    print(df)
+    #df[0].plot()
+    A = np.squeeze(np.asarray(B))
+    plt.table(cellText=df.values,
+    rowLabels=df.index, colLabels=df.columns,
+    loc='center', fontsize=30)
+    plt.axis('off')
+    #df.plot()
+    
+    fig.savefig('plots/'+g.ip_adress+'.png', dpi=200)
+    plt.close(fig) 
+    
+    
+    #B = compute_walk(4, g.get_first_matrix())
+    #df = pd.DataFrame(B, columns=g.graph.nodes(), index=g.graph.nodes())
+    #print(df)
     #print(B)
     #print(df)
     #plt.figure(index)
 
-plt.show()
+#plt.show()
 
 
 
