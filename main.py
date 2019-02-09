@@ -223,7 +223,7 @@ for index, g in enumerate(graphlets_.values()):
     B = compute_walk(4, g.get_first_matrix())
     df = pd.DataFrame(B, columns=g.graph.nodes(), index=g.graph.nodes())
     #print(B)
-    #print(df)
+    print(df)
     #plt.figure(index)
 
 #matrix = [[0,1,1],[1,0,1],[1,1,0]]
