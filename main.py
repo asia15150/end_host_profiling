@@ -162,7 +162,7 @@ def readAnnotatedTrace():
             #else:
              #  G.saveRowInArrays(row)
                
-            if line_count < 100:
+            if line_count < 100:#####CHANGE TO 10000 TO SEE DIFFERENC####FOR NOW I ONLY WORK WITH srcIp=882
                line_count+=1
             else:
                break
