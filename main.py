@@ -12,6 +12,9 @@ import csv
 import matplotlib.pyplot as plt
 #from random import choice
 import numpy as np
+import random
+from sklearn import svm
+
 #import pprint
 
 #font = {'size'   : 30}
@@ -155,34 +158,70 @@ def compute_walk(length, matrix):
     #print(A)
     return A
 
+def draw(g):
+    fig = plt.figure(figsize=(20,20))
+    plt.subplot(2, 1, 1)
+    g.draw()
+    plt.subplot(2, 1, 2)
+    g.make_first_matrix()
+    return fig
+
+def draw2(fig, B):
+    df = pd.DataFrame(B, columns=g.graph.nodes(), index=g.graph.nodes())
+    A = np.squeeze(np.asarray(B))
+    plt.table(cellText=df.values,
+                rowLabels=df.index, colLabels=df.columns,
+                loc='center', fontsize=30)
+    plt.axis('off')
+    fig.savefig('plots/'+g.ip_adress+'.png', dpi=200)
+    plt.close(fig)
+
+
+X = []
+Y = []
+i=0
+
+def before_SVM(B):
+    #B.flat
+    if (B.size != 900):
+        B.resize((1,900), refcheck=False)
+        #B.flatten()
+        X.append(B[0])
+        print(B)
+    else:
+        X.append(B.flatten())
+    print(B.ndim)
+    print(B.size)
+    Y.append(random.randint(0, 1))
+
+
+def SVM():
+    clf = svm.SVC(gamma='scale')
+    c = clf.fit(X, Y)
 
 
 graphlets_ = readAnnotatedTrace()
 for index, g in enumerate(graphlets_.values()):
-   
-    i = 200+index+1
-    #print(i)
-    #plt.subplot(i)
-    
-    fig = plt.figure(figsize=(20,20))
-    plt.subplot(2, 1, 1)
-    g.draw()
+    if (i == 0 or  i == 1 or i == 2 or i == 3 ):
+        #i = 200+index+1
+        fig = draw(g)
+        
+        B = compute_walk(4, g.get_first_matrix())
+        draw2(fig, B)
 
-    plt.subplot(2, 1, 2)
-    g.make_first_matrix()
-    B = compute_walk(4, g.get_first_matrix())
-    df = pd.DataFrame(B, columns=g.graph.nodes(), index=g.graph.nodes())
-    #df[0].plot()
-    A = np.squeeze(np.asarray(B))
-    plt.table(cellText=df.values,
-    rowLabels=df.index, colLabels=df.columns,
-    loc='center', fontsize=30)
-    plt.axis('off')
-    #df.plot()
-    
-    fig.savefig('plots/'+g.ip_adress+'.png', dpi=200)
-    plt.close(fig) 
-    
+        before_SVM(B)
+
+        
+        i+=1
+
+
+print("****")
+
+#SVM()
+
+
+
+
     
     #B = compute_walk(4, g.get_first_matrix())
     #df = pd.DataFrame(B, columns=g.graph.nodes(), index=g.graph.nodes())
