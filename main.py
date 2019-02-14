@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 from sklearn import svm
+from scipy import sparse
 
 #import pprint
 
@@ -32,7 +33,7 @@ class Graphlet:
         self.dstIp = set()
         self.sPort = set()
         self.dPort = set() 
-        self.anomalies = set()
+        self.anomalies = -1
         self.tab_nodes = set()
         self.graph = nx.DiGraph()
 
@@ -49,14 +50,14 @@ class Graphlet:
         row[2] = 'dstIP:'+row[2]
         row[3] = 'sPort:'+row[3]
         row[4] = 'dPort:'+row[4]
-        row[5] = 'anomalies:'+row[5]
+        #row[5] = 'anomalies:'+row[5]
         
         #self.srcIp.append(row[0])
         self.protocol.add(row[1])
         self.dstIp.add(row[2])
         self.sPort.add(row[3])
         self.dPort.add(row[4])
-        self.anomalies.add(row[5])
+        self.anomalies = row[5]
         self.tab_nodes = self.tab_nodes.union(self.makeNodes(row))
 
     #build the matrix to do the random walk
@@ -156,7 +157,9 @@ def compute_walk(length, matrix):
         A = np.matmul(A, matrix)
     #print("####walk: 4")
     #print(A)
-    return A
+    res = np.squeeze(np.asarray(A))
+    res = res.flatten()
+    return res
 
 def draw(g):
     fig = plt.figure(figsize=(20,20))
@@ -181,56 +184,40 @@ X = []
 Y = []
 i=0
 
-def before_SVM(B):
-    #B.flat
-    if (B.size != 900):
-        B.resize((1,900), refcheck=False)
-        #B.flatten()
-        X.append(B[0])
-        print(B)
-    else:
-        X.append(B.flatten())
-    print(B.ndim)
-    print(B.size)
-    Y.append(random.randint(0, 1))
+def before_SVM(B, classification_label):
+    # TO DO
+    size_the_biggest_matrix = 900
+    B.resize((1,size_the_biggest_matrix), refcheck=False)
+    print(B[0])
+    X.append(B[0])
+    Y.append(classification_label)
 
 
 def SVM():
     clf = svm.SVC(gamma='scale')
+    #print(clf)
     c = clf.fit(X, Y)
+    prediction_value = []
+    prediction_value.append(X[0])
+    prediction = clf.predict(prediction_value)
+    print(prediction)
 
 
-graphlets_ = readAnnotatedTrace()
-for index, g in enumerate(graphlets_.values()):
-    if (i == 0 or  i == 1 or i == 2 or i == 3 ):
-        #i = 200+index+1
+def main():
+    graphlets_ = readAnnotatedTrace()
+    for index, g in enumerate(graphlets_.values()):
         fig = draw(g)
-        
         B = compute_walk(4, g.get_first_matrix())
-        draw2(fig, B)
-
-        before_SVM(B)
-
         
-        i+=1
+        #draw2(fig, B)
+        classification_label = g.anomalies
+        before_SVM(B, classification_label)
+        i += 1
 
+    print("$$$$$$$$$$$$")
+    SVM()
 
-print("****")
-
-#SVM()
-
-
-
-
-    
-    #B = compute_walk(4, g.get_first_matrix())
-    #df = pd.DataFrame(B, columns=g.graph.nodes(), index=g.graph.nodes())
-    #print(df)
-    #print(B)
-    #print(df)
-    #plt.figure(index)
-
-#plt.show()
+main()
 
 
 
