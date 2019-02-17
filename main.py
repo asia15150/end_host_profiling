@@ -12,6 +12,7 @@ import csv
 import matplotlib.pyplot as plt
 #from random import choice
 import numpy as np
+
 from sklearn import svm
 from sklearn.svm import SVC
 from sklearn.preprocessing import OneHotEncoder
@@ -23,8 +24,6 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 import itertools
 from mpl_toolkits import mplot3d
-
-
 
 
 
@@ -45,7 +44,7 @@ class Graphlet:
         self.dstIp = set()
         self.sPort = set()
         self.dPort = set() 
-        self.anomalies = set()
+        self.anomalies = -1
         self.tab_nodes = set()
         self.graph = nx.DiGraph()
 
@@ -62,8 +61,8 @@ class Graphlet:
         row[2] = 'dstIP:'+row[2]
         row[3] = 'sPort:'+row[3]
         row[4] = 'dPort:'+row[4]
-        #row[5] = 'anomalies:'+row[5]
         self.anomalie = row[5]
+        #row[5] = 'anomalies:'+row[5]
         #self.srcIp.append(row[0])
         self.protocol.add(row[1])
         self.dstIp.add(row[2])
@@ -71,7 +70,7 @@ class Graphlet:
         self.dPort.add(row[4])
         #self.anomalies.add(row[5])
         row = row[:-1]
-        #print(row)
+
         self.tab_nodes = self.tab_nodes.union(self.makeNodes(row))
 
     #build the matrix to do the random walk
@@ -216,56 +215,6 @@ def plot_confusion_matrix(cm, classes,
     plt.xlabel('Predicted label')
     plt.tight_layout()
 
-def plot_svm(X, y):
-    h = .02  # step size in the mesh
-
-    # we create an instance of SVM and fit out data. We do not scale our
-    # data since we want to plot the support vectors
-    C = 1.0  # SVM regularization parameter
-    svc = svm.SVC(kernel='linear', C=C).fit(X, y)
-    rbf_svc = svm.SVC(kernel='rbf', gamma=0.7, C=C).fit(X, y)
-    poly_svc = svm.SVC(kernel='poly', degree=3, C=C).fit(X, y)
-    lin_svc = svm.LinearSVC(C=C).fit(X, y)
-
-    # create a mesh to plot in
-    #print (X)
-    #print (X[:, 0].max() + 1)
-    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
-    
-    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),np.arange(y_min, y_max, h))
-
-    # title for the plots
-    titles = ['SVC with linear kernel',
-              'LinearSVC (linear kernel)',
-              'SVC with RBF kernel',
-              'SVC with polynomial (degree 3) kernel']
-
-
-    for i, clf in enumerate((svc, lin_svc, rbf_svc, poly_svc)):
-    # Plot the decision boundary. For that, we will assign a color to each
-    # point in the mesh [x_min, m_max]x[y_min, y_max].
-        plt.subplot(2, 2, i + 1)
-        plt.subplots_adjust(wspace=0.4, hspace=0.4)
-
-        Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
-
-    # Put the result into a color plot
-        Z = Z.reshape(xx.shape)
-        plt.contourf(xx, yy, Z, cmap=plt.cm.Paired, alpha=0.8)
-
-    # Plot also the training points
-        plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Paired)
-        plt.xlabel('Sepal length')
-        plt.ylabel('Sepal width')
-        plt.xlim(xx.min(), xx.max())
-        plt.ylim(yy.min(), yy.max())
-        plt.xticks(())
-        plt.yticks(())
-        plt.title(titles[i])
-    plt.show()
-
-
     
 graphlets_ = readAnnotatedTrace()
 features = {}
@@ -327,6 +276,26 @@ for m in array_matrix:
     array.append(a)
 
 array_labels = np.asarray(array_labels)
+
+
+def draw(g):
+    fig = plt.figure(figsize=(20,20))
+    plt.subplot(2, 1, 1)
+    g.draw()
+    plt.subplot(2, 1, 2)
+    g.make_first_matrix()
+    return fig
+
+def draw2(fig, B):
+    df = pd.DataFrame(B, columns=g.graph.nodes(), index=g.graph.nodes())
+    A = np.squeeze(np.asarray(B))
+    plt.table(cellText=df.values,
+                rowLabels=df.index, colLabels=df.columns,
+                loc='center', fontsize=30)
+    plt.axis('off')
+    fig.savefig('plots/'+g.ip_adress+'.png', dpi=200)
+    plt.close(fig)
+
 
 
 X_train, X_test, y_train, y_test  =  train_test_split(array, array_labels, test_size=1.0, random_state=54, shuffle=False)
