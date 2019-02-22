@@ -215,12 +215,62 @@ def plot_confusion_matrix(cm, classes,
     plt.xlabel('Predicted label')
     plt.tight_layout()
 
+def damping_factor(direct_product_matrix):
+    #print(direct_product_matrix)
+    maxInDegree = 0
+    maxOutDegree = 0
+    sum_all_columns = direct_product_matrix.sum(axis=0)
+    sum_all_row = direct_product_matrix.sum(axis=1)
+    #print(sum_all_columns)
+    l = len(sum_all_columns)
+    for index in range(l):
+        maxInDegree = max(maxInDegree, sum_all_columns[index])
+        maxOutDegree = max(maxOutDegree, sum_all_row[index])
+    print(maxInDegree)
+    print(maxOutDegree)
+    
+    factor = 1/min(maxInDegree,maxOutDegree)
+    return factor
+
+def direct_product_kernel(matrix_adj_A, matrix_adj_B):
+    print("in")
+    l_A = len(matrix_adj_A)
+    l_B = len(matrix_adj_B)
+    #print(matrix_adj_A)
+    #print(matrix_adj_B)
+    new_size = l_A * l_B
+    products = None
+    for i in range(l_A):
+        matrix = None
+        for j in range(l_A):
+            new_matrix = matrix_adj_A[i][j] * matrix_adj_B
+            #print("new====")
+            #print(new_matrix)
+            if j == 0:
+                matrix = new_matrix
+            else:
+                matrix = np.concatenate((matrix, new_matrix), axis=1)
+        if i == 0:
+            products = matrix
+        else:
+            products = np.concatenate((products, matrix), axis=0)
+            #print(products)
+
+    #print(products)
+    dpf = damping_factor(products)
+    I = np.identity(len(products))
+    k = np.linalg.inv(np.subtract(I, dpf*products))
+    return np.array(k)
+            
+            
+                
     
 graphlets_ = readAnnotatedTrace()
 features = {}
 array_matrix = []
 array_labels = []
 size_max = 0
+adjacencies = []
 for index, g in enumerate(graphlets_.values()):
     g.make_graph()
     g.make_first_matrix()
@@ -259,6 +309,9 @@ for index, g in enumerate(graphlets_.values()):
     if size > size_max:
         size_max = sizesize = g.get_labels_size()
     matrix = compute_walk(4, g.get_first_matrix(), size)
+    
+    #a = a.flatten()
+    adjacencies.append(np.array(g.get_first_matrix()))
     array_matrix.append(matrix[1])
     if "normal" in g.anomalie:
         array_labels.append("normal")
@@ -297,25 +350,25 @@ def draw2(fig, B):
     plt.close(fig)
 
 
+dpk = direct_product_kernel(adjacencies[0],adjacencies[1])
+print(dpk)
 
-X_train, X_test, y_train, y_test  =  train_test_split(array, array_labels, test_size=1.0, random_state=54, shuffle=False)
-#print(c)
-
-X = array
-y = array_labels
-
-
-clf =  svm.SVC(kernel='poly', degree=size_max ,gamma='auto')
-clf.fit(array, array_labels)
-
-
-y_pred = clf.predict(X_test)
-classes = [ "anomalie", "normal"]
-print(accuracy_score(y_test, y_pred))
-print(classification_report(y_test, y_pred, target_names=classes))
-cnf_matrix = confusion_matrix(y_test, y_pred)
-plt.figure()
-plot_confusion_matrix(cnf_matrix, classes=classes,title='Confusion matrix, without normalization')
-
+#X_train, X_test, y_train, y_test  =  train_test_split(array, array_labels, test_size=1.0, random_state=54, shuffle=False)
+#X = array
+#y = array_labels
+#clf =  svm.SVC(kernel='poly', degree=size_max ,gamma='auto')
+#clf.fit(array, array_labels)
+#y_pred = clf.predict(X_test)
+#classes = [ "anomalie", "normal"]
+#print(accuracy_score(y_test, y_pred))
+#print(classification_report(y_test, y_pred, target_names=classes))
+#cnf_matrix = confusion_matrix(y_test, y_pred)
+#plt.figure()
+#plot_confusion_matrix(cnf_matrix, classes=classes,title='Confusion matrix, without normalization')
 #plt.show()
-plt.show()
+adj = adjacencies
+adjacencies = np.array(adjacencies)
+adjacencies = np.squeeze(adjacencies)
+#print(adjacencies)
+clf =  svm.SVC(kernel=direct_product_kernel)
+clf.fit([adjacencies], [adjacencies])
