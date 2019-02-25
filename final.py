@@ -27,11 +27,9 @@ from mpl_toolkits import mplot3d
 import time
 
 
-#import pprint
 
-#font = {'size'   : 30}
-
-#plt.rc('font', **font)
+graphlets_not = {}
+graphlets_ = {}
 
 #np.set_printoptions(threshold=sys.maxsize)
 #np.set_printoptions(threshold=np.nan)
@@ -259,10 +257,13 @@ def direct_product_kernel(matrix_adj_A, matrix_adj_B):
         else:
             products = np.concatenate((products, matrix), axis=0)
             #print(matrix)
+    print("\n\n\nDIRECT PRODUCT MATRIX \n\n",matrix)
+
 
     #we now can compute the goemetric sum
     #(I - dpf*direct_product_matrix)exposant(-1))
     dpf = damping_factor(products)
+    print("\n\nDAMPING FACTOR : ", dpf,"\n\n")
     
     I = np.identity(len(products))#matrix identity
     
@@ -371,10 +372,7 @@ def classification_annotated_linear(array, array_labels, size_max, array_not):
     plt.show()
 
 
-def main():
-    graphlets_ = readTrace('annotated-trace.csv')
-    graphlets_not = readTrace('not-annotated-trace.csv')
-    
+def main_random_walk():
     features = {}
     array_matrix = []#annotated
     array_matrix_not = []#not annotated
@@ -421,7 +419,29 @@ def main():
     classification_annotated_rbf(array, array_labels, size_max, array_not)
 #classification_annotated_linear(array, array_labels, size_max, array_not)
 
+def main_direct_product():
+    adjacencies = []
+    for index, g in enumerate(graphlets_.values()):
+        g.make_graph()
+        g.make_first_matrix()
+        adjacencies.append(np.array(g.get_first_matrix()))
+    #print(adjacencies)
+    #dpk = direct_product_kernel(adjacencies[0],adjacencies[1])
+   
+    dpk = direct_product_kernel(np.array([(1,2,0),(3,4,0),(5,6,0)]),np.array([(1,0,1),(2,1,3), (2,1,4)]))
+    print("RESULT AFTER SUMMING UP : ",dpk,"\n\n")
+    l = len(adjacencies)
+    kernel_matrix = np.zeros((l,l))
+    print(kernel_matrix.shape)
+    time_start = time.process_time()
+    #run your code
 
 
-main()
+graphlets_ = readTrace('annotated-trace.csv')
+graphlets_not = readTrace('not-annotated-trace.csv')
+
+main_direct_product()
+#main_random_walk()
+
+
 
