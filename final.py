@@ -359,6 +359,9 @@ def draw2(fig, B):
 #time_start = time.process_time()
 #run your code
 
+
+####à faire!!!!!!!!!donne les matrix non annotated dans cette fonction et
+    ###à la place de y_pred = clf.predict(X_test) il faut faire clf.predict(Matrix_non_annotated )
 def classification_annoted(array, array_labels, size_max):
     #print(len(array))
     X_train, X_test, y_train, y_test  =  train_test_split(array, array_labels, test_size=1.0, random_state=54, shuffle=False)
@@ -373,19 +376,6 @@ def classification_annoted(array, array_labels, size_max):
     plot_confusion_matrix(cnf_matrix, classes=classes,title='Confusion matrix, without normalization')
     plt.show()
 
-def classification_anannoted(array, array_labels, size_max):
-    #print(len(array))
-    X_train, X_test, y_train, y_test  =  train_test_split(array, array_labels, test_size=1.0, random_state=54, shuffle=False)
-    clf =  svm.SVC(kernel='rbf', random_state=0, gamma=.01, C=1)
-    clf.fit(array, array_labels)
-    y_pred = clf.predict(X_test)
-    classes = [ "anomalie", "normal"]
-    print('accuracy score: ',accuracy_score(y_test, y_pred))
-    print(classification_report(y_test, y_pred, target_names=classes))
-    cnf_matrix = confusion_matrix(y_test, y_pred)
-    plt.figure()
-    plot_confusion_matrix(cnf_matrix, classes=classes,title='Confusion matrix, without normalization')
-    plt.show()
 
 
 array_labels = np.asarray(array_labels)
@@ -398,6 +388,6 @@ classification(array, array_labels, size_max)
 
 
 #print(adjacencies)
-print("hello")
+##print("hello")
 #clf =  svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
 #clf.fit(kernel_matrix)
