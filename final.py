@@ -268,11 +268,22 @@ def direct_product_kernel(matrix_adj_A, matrix_adj_B):
                 
     
 graphlets_ = readTrace('annotated-trace.csv')
+graphlets_not = readTrace('not-annotated-trace.csv')
+
 features = {}
-array_matrix = []
+array_matrix = []#annotated
+array_matrix_not = []#not annotated
 array_labels = []
 size_max = 0
 adjacencies = []
+
+for index, g in enumerate(graphlets_not.values()):
+    g.make_graph()
+    g.make_first_matrix()
+    size = g.get_labels_size()
+    matrix = compute_walk(4, g.get_first_matrix(), size)
+    array_matrix_not.append(matrix)
+    
 for index, g in enumerate(graphlets_.values()):
     g.make_graph()
     g.make_first_matrix()
@@ -366,6 +377,7 @@ def classification_annoted(array, array_labels, size_max):
     #print(len(array))
     X_train, X_test, y_train, y_test  =  train_test_split(array, array_labels, test_size=1.0, random_state=54, shuffle=False)
     clf =  svm.SVC(kernel='rbf', random_state=0, gamma=.01, C=1)
+
     clf.fit(array, array_labels)
     y_pred = clf.predict(X_test)
     classes = [ "anomalie", "normal"]
@@ -376,11 +388,46 @@ def classification_annoted(array, array_labels, size_max):
     plot_confusion_matrix(cnf_matrix, classes=classes,title='Confusion matrix, without normalization')
     plt.show()
 
+def classification_annoted_not(array, array_labels, size_max, array_not):
+    #print(len(array))
+    X_train, X_test, y_train, y_test  =  train_test_split(array, array_labels, test_size=1.0, random_state=54, shuffle=False)
+
+    #decomment choose one kernel to see difference
+    #clf =  svm.SVC(kernel='rbf', random_state=0, gamma=.01, C=1)
+    clf =  svm.SVC(kernel='linear', gamma='auto')
+    #clf =  svm.SVC(kernel='poly', degree=size_max, gamma='auto')
+
+    clf.fit(array, array_labels)
+    
+    y_pred = clf.predict(X_test)#test
+    not_pred = clf.predict(array_not)#not annotated prediction
+    
+    classes = [ "anomalie", "normal"]
+
+    
+    print('accuracy score: ',accuracy_score(y_test, y_pred))
+    print('accuracy score not: ',accuracy_score(y_test, not_pred))
+    
+    print(classification_report(y_test, y_pred, target_names=classes))
+    print(classification_report(y_test, not_pred, target_names=classes))
+    
+    cnf_matrix = confusion_matrix(y_test, y_pred)
+    cnf_matrix_not = confusion_matrix(y_test, not_pred)
+    
+    plt.figure()
+    plot_confusion_matrix(cnf_matrix, classes=classes,title='Confusion matrix, annotated matrix with y_test')
+
+    plt.figure()
+    plot_confusion_matrix(cnf_matrix_not, classes=classes,title='Confusion matrix, annotated matrix with not annotated')
+
+    plt.show()
+
 
 
 array_labels = np.asarray(array_labels)
 array = reshape_matrix(array_matrix)
-classification(array, array_labels, size_max)
+array_not = reshape_matrix(array_matrix_not)
+classification_annoted_not(array, array_labels, size_max, array_not)
 #adj = adjacencies
 #print(adjacencies)
 #adjacencies 
