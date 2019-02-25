@@ -59,6 +59,40 @@ class Graphlet:
                     self.graphG.add_edge(srcIp,ip, color=final_color)
         print(self.graphG.edges.data())
 
+    def count_2_path(self):
+        return len(list(g.graphG.edges))
+
+    def count_3_path(self):
+        res = 0
+        G = g.graphG
+        #nodes = list(g.graphG.nodes)
+        for node in G.nodes:
+            #print(node, " : ")#, " : ", list(G.adj[node]))
+            for adj in G.adj[node]:
+                #print (adj)
+                for adj_2 in G.adj[adj]:
+                    #print ("     -     ", adj_2)
+                    res +=1
+        return res
+
+    def count_4_star(self):
+        res = 0
+        G = g.graphG
+        for node in G.nodes:
+            for adj in G.adj[node]:
+                size_addjacance_list = len(list(G.adj[adj]))
+                if ( size_addjacance_list == 3):
+                    res += 1
+                elif size_addjacance_list > 3:
+                    res += (size_addjacance_list+ 1)
+        return res
+
+
+
+
+
+
+
 
 
 
@@ -78,6 +112,8 @@ def contruction_part_of_graphlet(g, row):
 
 
 #read file and build graphlets H and then G
+#where the threshold is the he number of seconds between 2 diffrent time windows
+# for instance: threshold = 30 signifies: time window 1: 0-30, time window 2 : 30-60
 def readAnnotatedTrace(threshold):
     time_threshold = threshold
     with open('graph_printing.csv') as csv_file:
@@ -97,13 +133,7 @@ def readAnnotatedTrace(threshold):
 
 
 
-#def count_4_star():
 
-
-def count_2_path(g):
-
-
-#def count_3_path():
 
 
 
@@ -111,8 +141,15 @@ readAnnotatedTrace(30)
 #print(list_graphlets)
 for g in list_graphlets:
     print(g.graphH.edges)
-    print("graphG")
+    print("graphG -----------------------------------")
     g.make_graphG()
-    print("**********")
+    print("2_path :")
+    print(g.count_2_path())
+    print("3_path :")
+    print(g.count_3_path())
+    print("4_star :")
+    print(g.count_4_star())
+    print("******************************************************************************************")
+
 
 
