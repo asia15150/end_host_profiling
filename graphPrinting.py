@@ -4,6 +4,7 @@ import networkx as nx
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 
 #time, srcIp, protocol, dstIp, sPort, dPort, toBytes
 
@@ -18,6 +19,8 @@ class Graphlet:
         self.tab_nodes = set()
         self.graphH = nx.MultiDiGraph()
         self.graphG = nx.DiGraph()
+        self.graphlet_count = {}
+        self.orbit_count = {}
 
     
     def make_graphH(self, srcIp,dstIp, w, c):
@@ -59,12 +62,30 @@ class Graphlet:
                     self.graphG.add_edge(srcIp,ip, color=final_color)
         print(self.graphG.edges.data())
 
+    
+    def drawG(self):
+        plt.subplot(111)
+        G = self.graphG
+        pos = nx.circular_layout(G)
+        edges = G.edges()
+        colors = [G[u][v]['color'] for u,v in edges]
+        nx.draw(G, with_labels=True, edges=edges, edge_color=colors)
+        plt.show()
+    
+    def drawH(self):
+        G = self.graphH
+        plt.subplot(111)
+        nx.draw(G, with_labels=True, font_weight='bold')
+        plt.show()
+
+
+    
     def count_2_path(self):
-        return len(list(g.graphG.edges))
+        return len(list(self.graphG.edges))
 
     def count_3_path(self):
         res = 0
-        G = g.graphG
+        G = self.graphG
         #nodes = list(g.graphG.nodes)
         for node in G.nodes:
             #print(node, " : ")#, " : ", list(G.adj[node]))
@@ -77,7 +98,7 @@ class Graphlet:
 
     def count_4_star(self):
         res = 0
-        G = g.graphG
+        G = self.graphG
         for node in G.nodes:
             for adj in G.adj[node]:
                 size_addjacance_list = len(list(G.adj[adj]))
@@ -86,12 +107,74 @@ class Graphlet:
                 elif size_addjacance_list > 3:
                     res += (size_addjacance_list+ 1)
         return res
+    
+    
+    def count_3_path_interior(self, node):
+        G = self.graphG
+        adjacency_size = len(list(G.adj[node]))
+        nb_parent_nodes = 0
+        if adjacency_size > 0:
+            for vert in G:
+                adj_list = G.adj[vert]
+                nb_parent_nodes += len(adj_list)
+        return nb_parent_nodes * adjacency_size
+
+    
+    def count_3_path_terminal(self, node):
+        G = self.graphG
+        res = 0
+        for adj in G.adj[node]:
+            #print (adj)
+            for adj_2 in G.adj[adj]:
+                #print ("     -     ", adj_2)
+                res +=1
+                    
+        for vert in G:
+            adj_list = G.adj[vert]
+            for v in G:
+                for vv in adj_list:
+                    if (vv in G.adj[v]):
+                        res+=1
+        return res
+            
+    
+    def count_4_star_center(self, node):
+        G = self.graphG
+        size_adj = len(list(G.adj[node]))
+        if size_adj == 4:
+            return 1
+        if size_adj >=4:
+            return size_adj
+        return 0
+
+    def count_4_star_leaf(self, node):
+        G = self.graphG
+        list_parent_nodes = G.adj[node]
+        res = 0
+        for nd in list_parent_nodes:
+            if len(list(G.adj[nd])) >= 4:
+                res +=1
+        return res
+    
+
+    def compute_graphlet_count(self):
+        #print(self.graphH.edges)
+        self.make_graphG()
+        self.graphlet_count["2_path"] = self.count_2_path()
+        self.graphlet_count["3_path"] = self.count_3_path()
+        self.graphlet_count["4_star"] = self.count_4_star()
 
 
-
-
-
-
+    def compute_orbit_count(self):
+        G = g.graphG
+        for node in G.nodes:
+            orbit_c = {}
+            orbit_c["3_path_interior"] = self.count_3_path_interior(node)
+            orbit_c["3_path_terminal"] = self.count_3_path_terminal(node)
+            orbit_c["4_star_center"] = self.count_4_star_center(node)
+            orbit_c["4_star_leaf"] = self.count_4_star_leaf(node)
+            self.orbit_count[node] = orbit_c
+            return 0
 
 
 
@@ -135,20 +218,22 @@ def readAnnotatedTrace(threshold):
 
 
 
-
-
 readAnnotatedTrace(30)
 #print(list_graphlets)
 for g in list_graphlets:
-    print(g.graphH.edges)
-    print("graphG -----------------------------------")
-    g.make_graphG()
-    print("2_path :")
-    print(g.count_2_path())
-    print("3_path :")
-    print(g.count_3_path())
-    print("4_star :")
-    print(g.count_4_star())
+    g.compute_graphlet_count()
+    g.compute_orbit_count()
+    g.drawH()
+    g.drawG()
+    
+    print ("graphlet count ", name_node,)
+    for name_struct, nb in g.graphlet_count.items():
+        print(" ",name_struct, " : ", nb)
+    
+    for name_node, dict in g.orbit_count.items():
+        print ("orbit count for node ", name_node,)
+        for struct, nb_ in dict.items():
+            print(" ",struct, " : ", nb_)
     print("******************************************************************************************")
 
 
