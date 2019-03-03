@@ -3,38 +3,37 @@
 """
 Created on Wed Jan 30 16:05:42 2019
 
-@author: asia
+@author: asia and Tran Thanh Long
 """
-#import sys
-from multiprocessing import Pool
-
 import pandas as pd
 import networkx as nx
 import csv
 import matplotlib.pyplot as plt
-#from random import choice
 import numpy as np
-
+import itertools
 from sklearn import svm
 from sklearn.svm import SVC
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import OrdinalEncoder
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
-import itertools
-from mpl_toolkits import mplot3d
-import time
-from joblib import Parallel, delayed
 
 
+#=============Variables need to be init first
 graphlets_not = {}
 graphlets_ = {}
 
-#np.set_printoptions(threshold=sys.maxsize)
-#np.set_printoptions(threshold=np.nan)
+lib = {
+    "anomalies": [],
+    "features": {},
+    "array_matrix":[],#annotated
+    "array_matrix_not":[],#not annotated
+    "array_labels":[],
+    "size_max":0,
+    "adjacencies" :[]
+    }
+
 class Graphlet:
     def __init__(self, ip_adress):
         self.ip_adress = ip_adress
@@ -138,8 +137,6 @@ class Graphlet:
         
 #read file and build graphlets
 def readTrace(file):
-    #ip = 'srcIp:882'
-    #G = Graphlet(ip)
     graphlets_ = {}
     with open(file) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
@@ -147,9 +144,6 @@ def readTrace(file):
         for row in csv_reader:       
             ip = 'srcIp:'+row[0]
             G = graphlets_.get(ip)
-#            if 'srcIp:882' == ip:
-#                print(ip)
-#                print(G)
             if G == None:
                 G = Graphlet(ip)
                 G.saveRowInArrays(row)
@@ -157,10 +151,6 @@ def readTrace(file):
             else:
                 G.saveRowInArrays(row)
 
-#            if line_count < 3000:#####CHANGE TO 10000 TO SEE DIFFERENC####FOR NOW I ONLY WORK WITH srcIp=882
-#               line_count+=1
-#            else:
-#               break
 
     return graphlets_
 
@@ -217,6 +207,8 @@ def plot_confusion_matrix(cm, classes,
     plt.xlabel('Predicted label')
     plt.tight_layout()
 
+
+#old version but much more understandable
 def damping_factor(direct_product_matrix):
     #print(direct_product_matrix)
     maxInDegree = 0
@@ -239,7 +231,7 @@ def damping_factor(direct_product_matrix):
 
 
 
-
+#old version but much more understandable
 def direct_product_kernel(matrix_adj_A, matrix_adj_B):
     l_A = len(matrix_adj_A)#size of matrix adjacency A
     l_B = len(matrix_adj_B)#size of matrix adjacency B
@@ -341,10 +333,10 @@ def classification_annotated_rbf(array, array_labels, size_max, array_not):
 
     
     plt.figure()
-    plot_confusion_matrix(cnf_matrix, classes=classes,title='Confusion matrix for rbf kernel, without normalization')
+    plot_confusion_matrix(cnf_matrix, classes=classes,title='Confusion matrix for rbf kernel, with annotated matrix itself')
     
     plt.figure()
-    plot_confusion_matrix(cnf_matrix_not, classes=classes,title='Confusion matrix for rbf kernel, annotated matrix with not annotated')
+    plot_confusion_matrix(cnf_matrix_not, classes=classes,title='Confusion matrix for rbf kernel, with not annotated matrix')
     
     plt.show()
 
@@ -356,8 +348,8 @@ def classification_annotated_linear(array, array_labels, size_max, array_not):
     X_train, X_test, y_train, y_test  =  train_test_split(array, array_labels, test_size=1.0, random_state=54, shuffle=False)
 
     #decomment choose one kernel to see difference
-    clf =  svm.SVC(kernel='rbf', random_state=0, gamma=.01, C=1)
-    #clf =  svm.SVC(kernel='linear', gamma='auto')
+    #clf =  svm.SVC(kernel='rbf', random_state=0, gamma=.01, C=1)
+    clf =  svm.SVC(kernel='linear', gamma='auto')
     #clf =  svm.SVC(kernel='poly', degree=size_max, gamma='auto')
 
     clf.fit(array, array_labels)
@@ -378,109 +370,98 @@ def classification_annotated_linear(array, array_labels, size_max, array_not):
     cnf_matrix_not = confusion_matrix(y_test, not_pred)
     
     plt.figure()
-    plot_confusion_matrix(cnf_matrix, classes=classes,title='Confusion matrix for linear kernel, annotated matrix with y_test')
+    plot_confusion_matrix(cnf_matrix, classes=classes,title='Confusion matrix for linear kernel, with annotated matrix itself')
 
     plt.figure()
-    plot_confusion_matrix(cnf_matrix_not, classes=classes,title='Confusion matrix for linear kernel, annotated matrix with not annotated')
+    plot_confusion_matrix(cnf_matrix_not, classes=classes,title='Confusion matrix for linear kernel, with not annotated matrix')
+
+    plt.show()
+
+def classification_annotated_poly(array, array_labels, size_max, array_not):
+    #print(len(array))
+    X_train, X_test, y_train, y_test  =  train_test_split(array, array_labels, test_size=1.0, random_state=54, shuffle=False)
+
+    #decomment choose one kernel to see difference
+    #clf =  svm.SVC(kernel='rbf', random_state=0, gamma=.01, C=1)
+    #clf =  svm.SVC(kernel='linear', gamma='auto')
+    clf =  svm.SVC(kernel='poly', degree=size_max, gamma='auto')
+
+    clf.fit(array, array_labels)
+    
+    y_pred = clf.predict(X_test)#test
+    not_pred = clf.predict(array_not)#not annotated prediction
+    
+    classes = [ "anomalie", "normal"]
+
+    
+    print('accuracy score: ',accuracy_score(y_test, y_pred))
+    print('accuracy score not: ',accuracy_score(y_test, not_pred))
+    
+    print(classification_report(y_test, y_pred, target_names=classes))
+    print(classification_report(y_test, not_pred, target_names=classes))
+    
+    cnf_matrix = confusion_matrix(y_test, y_pred)
+    cnf_matrix_not = confusion_matrix(y_test, not_pred)
+    
+    plt.figure()
+    plot_confusion_matrix(cnf_matrix, classes=classes,title='Confusion matrix for linear kernel, with annotated matrix itself')
+
+    plt.figure()
+    plot_confusion_matrix(cnf_matrix_not, classes=classes,title='Confusion matrix for linear kernel, with not annotated matrix')
 
     plt.show()
 
 
-def main_random_walk():
-    features = {}
-    array_matrix = []#annotated
-    array_matrix_not = []#not annotated
-    array_labels = []
-    size_max = 0
-    adjacencies = []
-    
+
+
+
+
+def init():
     for index, g in enumerate(graphlets_not.values()):
         g.make_graph()
         g.make_first_matrix()
         size = g.get_labels_size()
         matrix = compute_walk(4, g.get_first_matrix(), size)
-        array_matrix_not.append(matrix[1])
-
+        lib["array_matrix_not"].append(matrix[1])
     for index, g in enumerate(graphlets_.values()):
         #print("***********************")
         g.make_graph()
         g.make_first_matrix()
         #print(g.graph.edges)
         size = g.get_labels_size()
-        if size > size_max:
-            size_max = sizesize = g.get_labels_size()
+        if size > lib["size_max"]:
+            lib["size_max"] = g.get_labels_size()
         matrix = compute_walk(4, g.get_first_matrix(), size)
-        array_matrix.append(matrix[1])
-
-
-#print("\n RANDOM WALK KERNEL MATRIX : \n")
-#print(matrix[1])
-#       print('\n')
-#draw(g)
-# plt.show()
-
-#adjacencies.append(np.array(g.get_first_matrix()))
+        lib["array_matrix"].append(matrix[1])
+        m = np.array(g.get_first_matrix())
+        lib["adjacencies"].append(m)
         if(g.anomalie != -1):
             if "normal" in g.anomalie:
-                array_labels.append("normal")
+                lib["array_labels"].append("normal")
             else:
-                array_labels.append("anomalie")
-    #features.update({g.ip_adress: (np.count_nonzero(matrix[1]),g.anomalie)})
+                lib["array_labels"].append("anomalie")
+                lib["anomalies"].append(np.array(g.get_first_matrix()))
 
-    array_labels = np.asarray(array_labels)
-    array = reshape_matrix(array_matrix, size_max)
-    array_not = reshape_matrix(array_matrix_not, size_max)
-    classification_annotated_rbf(array, array_labels, size_max, array_not)
-#classification_annotated_linear(array, array_labels, size_max, array_not)
-
-def main_direct_product():
-    adjacencies = []
-    anomalie = None
-    normal = None
-    anomalies = []
-    for index, g in enumerate(graphlets_.values()):
-        g.make_graph()
-        g.make_first_matrix()
-        adjacencies.append(np.array(g.get_first_matrix()))
-        if(g.anomalie != -1):
-            if "normal" in g.anomalie:
-                normal = np.array(g.get_first_matrix())       
-            else:
-                print(g.ip_adress)
-                print(index)
-                anomalie = np.array(g.get_first_matrix())
-                anomalies.append(anomalie)
-        
-    #print(adjacencies)
-    #dpk = direct_product_kernel(adjacencies[0],adjacencies[1])
-    #print(normal.shape)
-    #print(anomalie.shape)
-    #dpk = direct_product_kernel(normal,anomalie)
-
-
-    #list = np.zeros((1,200))
-    #for i in range(1):
-     #   for j in range(200):
-    #        list[i,j] = (int(direct_product_kernel(adjacencies[14],adjacencies[j])))
-    #print(list)
-
-    #direct = direct_product_kernel_v2(adjacencies[14],adjacencies[j])
-    #print(direct)
+    lib["array_labels"] = np.asarray(lib["array_labels"])
+    lib["array"] = reshape_matrix(lib["array_matrix"], lib["size_max"])
+    lib["array_not"] = reshape_matrix(lib["array_matrix_not"], lib["size_max"])
     
-    #dpk = direct_product_kernel(adjacencies[10],adjacencies[100])
-    #print(list)
-    #print("RESULT AFTER SUMMING UP : ",dpk,"\n\n")
-    #l = len(adjacencies)
-    #kernel_matrix = np.zeros((l,l))
-    #print(kernel_matrix.shape)
-    #time_start = time.process_time()
-    #run your code
+    
+def main_random_walk():
+    #decomment to see difference result from different kernel
+
+    #1)
+    #classification_annotated_rbf(array, array_labels, size_max, array_not)
+    #2)
+    #classification_annotated_linear(array, array_labels, size_max, array_not)
+    #3)
+    classification_annotated_poly(lib["array"], lib["array_labels"], lib["size_max"], lib["array_not"])
 
 
-graphlets_ = readTrace('annotated-trace.csv')
-graphlets_not = readTrace('not-annotated-trace.csv')
 
 
+
+#improving version
 def damping_factor_v2(direct_product_matrix):
     maxInDegree = np.amax(direct_product_matrix.sum(axis=0))#somme columns then find max 
     maxOutDegree = np.amax(direct_product_matrix.sum(axis=1))#somme row then find max 
@@ -488,7 +469,8 @@ def damping_factor_v2(direct_product_matrix):
 
     #print('DAMPING-FACTOR--------',factor,'---------------')
     return factor
-    
+
+#improving version 
 def direct_product_kernel_v2(matrix_adj_A, matrix_adj_B):
     lA = len(matrix_adj_A)
     lB = len(matrix_adj_B)
@@ -504,43 +486,47 @@ def direct_product_kernel_v2(matrix_adj_A, matrix_adj_B):
     return k
 
 def main_direct_product_v2():
-    adjacencies = []
-    anomalie = None
-    normal = None
-    anomalies = []
-    for index, g in enumerate(graphlets_.values()):
-        g.make_graph()
-        g.make_first_matrix()
-        adjacencies.append(np.array(g.get_first_matrix()))
-        if(g.anomalie != -1):
-            if "normal" in g.anomalie:
-                normal = np.array(g.get_first_matrix())       
-            else:
-                #print(g.ip_adress)
-                #print(index)
-                anomalie = np.array(g.get_first_matrix())
-                anomalies.append(anomalie)
-    list_ = np.zeros((100,1001))
+    #take an anomalie matrix and do the direct product with the others
+    test_direct_product_1()
 
+    #take an normal matrix and do the direct product with the others
+    test_direct_product_2()
     
+                                        
 
-    #time_start = time.process_time()
-    #for i in range(2):
-        #Parallel(n_jobs=2)(delayed(direct_product_kernel_v2)(adjacencies[i],adjacencies[j]) for j in range(1001))
-    #time_end = time.process_time()
-    #print(list_)
-    #print('time::::',time_end-time_start)
+def test_direct_product_1():
+    list_ = np.zeros((1,1001))
+    lib["adjacencies"]
+    for i in range(1):
+        for j in range(1001):
+                list_[i,j] = direct_product_kernel_v2(lib["anomalies"][0], lib["adjacencies"][j])
+    print(list_)
 
+def test_direct_product_2():
+    list_ = np.zeros((1,1001))
+    lib["adjacencies"]
+    for i in range(1):
+        for j in range(1001):
+                list_[i,j] = direct_product_kernel_v2(lib["adjacencies"][0], lib["adjacencies"][j])
+    print(list_)
     
 
 
+        
+#those three lines are importants!!!! build the graphs in order to get the adjacencies matrix.
+graphlets_ = readTrace('annotated-trace.csv')
+graphlets_not = readTrace('not-annotated-trace.csv')
+init()
+#====================No need to be touched :)
 
-    
-main_direct_product_v2()
+# to draw just choose one graphe in graphlets by knowing the ip => format should of the key 'srcIp:the_ip'
+#draw(g)
 
-    
-#main_direct_product()
-#main_random_walk()
+#1) it is all the questions, this is a result of a kernel, if you want to change it go to the function itself to see difference :)
+main_random_walk()
+
+#2) specifique to random walk
+#main_direct_product_v2()
 
 
 
